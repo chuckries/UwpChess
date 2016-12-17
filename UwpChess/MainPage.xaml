@@ -11,8 +11,8 @@
         <Style TargetType="ContentPresenter" x:Key="SquareStyle">
             <Setter Property="local:BindingHelper.GridRowBindingPath" Value="Coordinate.Row" />
             <Setter Property="local:BindingHelper.GridColumnBindingPath" Value="Coordinate.Col" />
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="local:BindingHelper.CanvasZIndexBindingPath" Value="IsSelected" />
+            <Setter Property="FontSize" Value="8"/>
         </Style>
         <Style TargetType="ContentPresenter" BasedOn="{StaticResource SquareStyle}" x:Key="DarkSquareStyle">
             <Setter Property="Background" Value="DarkGreen"/>
@@ -25,6 +25,8 @@
         <local:TileStyleSelector x:Key="TileStyleSelector" Dark="{StaticResource DarkSquareStyle}" Light="{StaticResource LightSquareStyle}"/>
 
         <local:VisiblilityValueConverter x:Key="boolean"/>
+
+        <local:ChessPieceToImageSourceConverter x:Key="ChessPieceToImageSourceConverter"/>
     </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -62,7 +64,12 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="local:TileViewModel">
-                            <Grid Tapped="Grid_Tapped">
+                            <Grid>
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="IsHitTestVisible" Value="False" />
+                                    </Style>
+                                </Grid.Style>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="8*"/>
@@ -73,8 +80,19 @@
                                     <ColumnDefinition Width="8*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Row="2"
-                                            Text="{x:Bind Coordinate.Notation}" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                                <Ellipse Grid.RowSpan="3" Grid.ColumnSpan="3"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="Gray" Opacity="0.5" Visibility="{x:Bind IsSelected, Mode=OneWay, Converter={StaticResource boolean}}">
+                                    <Ellipse.RenderTransform>
+                                        <ScaleTransform CenterX="50" CenterY="50"
+                                                        ScaleX="1.5" ScaleY="1.5">
+
+                                        </ScaleTransform>
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                                <Image Grid.Row="1" Grid.Column="1" Source="{x:Bind Piece, Mode=OneWay, Converter={StaticResource ChessPieceToImageSourceConverter}}">
+                                </Image>
+                                <TextBlock Text="{x:Bind Coordinate.Notation}" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

@@ -21,6 +21,12 @@ namespace UwpChess
                 "GridRowBindingPath", typeof(string), typeof(BindingHelper),
                 new PropertyMetadata(null, GridBindingPathPropertyChanged));
 
+        public static readonly DependencyProperty CanvasZIndexBindingPathProperty =
+            DependencyProperty.RegisterAttached(
+                "CanvasZIndexBindingPath", typeof(string), typeof(BindingHelper),
+                new PropertyMetadata(null, CanvasBindingPathPropertyChanged));
+
+
         public static string GetGridColumnBindingPath(DependencyObject obj)
         {
             return (string)obj.GetValue(GridColumnBindingPathProperty);
@@ -41,6 +47,16 @@ namespace UwpChess
             obj.SetValue(GridRowBindingPathProperty, value);
         }
 
+        public static string GetCanvasZIndexBindingPath(DependencyObject obj)
+        {
+            return (string)obj.GetValue(CanvasZIndexBindingPathProperty);
+        }
+
+        public static void SetCanvasZIndexBindingPath(DependencyObject obj, string value)
+        {
+            obj.SetValue(CanvasZIndexBindingPathProperty, value);
+        }
+
         private static void GridBindingPathPropertyChanged(
             DependencyObject obj, DependencyPropertyChangedEventArgs e)
         {
@@ -48,15 +64,35 @@ namespace UwpChess
 
             if (propertyPath != null)
             {
-                var gridProperty =
-                    e.Property == GridColumnBindingPathProperty
-                    ? Grid.ColumnProperty
-                    : Grid.RowProperty;
+                DependencyProperty property = null;
+                if (e.Property == GridColumnBindingPathProperty)
+                {
+                    property = Grid.ColumnProperty;
+                }
+                else if (e.Property == GridRowBindingPathProperty)
+                {
+                    property = Grid.RowProperty;
+                }
 
                 BindingOperations.SetBinding(
                     obj,
-                    gridProperty,
+                    property,
                     new Binding { Path = new PropertyPath(propertyPath) });
+            }
+        }
+
+        private static void CanvasBindingPathPropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            var propertyPath = e.NewValue as string;
+
+            if (propertyPath != null)
+            {
+                DependencyProperty property = Canvas.ZIndexProperty;
+
+                BindingOperations.SetBinding(
+                    obj,
+                    property,
+                    new Binding { Path = new PropertyPath(propertyPath), Converter = new BooleanToZIndexConverter() });
             }
         }
     }

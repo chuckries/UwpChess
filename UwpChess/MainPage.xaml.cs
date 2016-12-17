@@ -26,20 +26,50 @@ namespace UwpChess
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public static MainPage Instance { get; private set; }
+        private TileViewModel _selectedSquare;
+
         public BoardViewModel ViewModel { get; private set; }
 
         public MainPage()
         {
+            Instance = this;
             this.InitializeComponent();
             ViewModel = new BoardViewModel();
         }
+
+        private void ItemsControl_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            ItemsControl itemControl = sender as ItemsControl;
+            ContentPresenter container = e.OriginalSource as ContentPresenter;
+            TileViewModel viewModel = itemControl.ItemFromContainer(container) as TileViewModel;
+
+            if (_selectedSquare == null && viewModel.Piece != null)
+            {
+                viewModel.IsSelected = true;
+                _selectedSquare = viewModel;
+            }
+            else if (viewModel == _selectedSquare)
+            {
+                viewModel.IsSelected = false;
+                _selectedSquare = null;
+            }
+            else if (_selectedSquare != null && _selectedSquare.Piece != null)
+            {
+                // move piece and hope stuff works
+                viewModel.Piece = _selectedSquare.Piece;
+                _selectedSquare.IsSelected = false;
+                _selectedSquare.Piece = null;
+                _selectedSquare = null;
+            }
+        }
     }
-
-
 
     public class BoardViewModel
     {
         public IReadOnlyCollection<TileViewModel> Tiles { get; private set; }
+
+        public Position Position { get; private set; } = new Position();
 
         public BoardViewModel()
         {
@@ -81,11 +111,18 @@ namespace UwpChess
 
     public class TileViewModel : BindableBase
     {
-        private ChessPiece _piece;
-
         public BoardViewModel Board { get; private set; }
         public TileCoordinate Coordinate { get; private set; }
         public int Id { get { return Coordinate.Id; } }
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set { SetPropertyValue(ref _isSelected, value); }
+        }
+
+        private ChessPiece _piece;
 
         public ChessPiece Piece
         {
@@ -97,6 +134,7 @@ namespace UwpChess
         {
             Board = board;
             Coordinate = new TileCoordinate(id);
+            Piece = board.Position.Pieces[id];
         }
     }
 
